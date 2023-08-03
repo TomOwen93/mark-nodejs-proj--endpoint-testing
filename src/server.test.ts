@@ -10,8 +10,7 @@ test("GET / responds with a welcome message from our mysterious robed figure", a
     location: CAVE_EXTERIOR,
     speech: {
       speaker: MYSTERIOUS_ROBED_FIGURE,
-      text:
-        "Welcome, young adventurer, to the ENDPOINT ADVENTURE. Are you ready for this quest?",
+      text: "Welcome, young adventurer, to the ENDPOINT ADVENTURE. Are you ready for this quest?",
     },
     options: {
       yes: "/quest/accept",
@@ -56,7 +55,7 @@ test("GET /quest/decline responds with an apocalyptic message", async () => {
   expect(response.body.options).toStrictEqual({ restart: "/" });
 });
 
-test.skip("GET /quest/start/impossible responds with instant 'death'", async () => {
+test("GET /quest/start/impossible responds with instant 'death'", async () => {
   const response = await supertest(app).get("/quest/start/impossible");
 
   // there is _some_ location
@@ -72,4 +71,64 @@ test.skip("GET /quest/start/impossible responds with instant 'death'", async () 
 
   // includes option to restart
   expect(response.body.options).toMatchObject({ restart: "/" });
+});
+
+test("GET /help responds with useful game information", async () => {
+  const response = await supertest(app).get("/help");
+
+  //expect location:
+  expect(response.body.location).toBeDefined();
+
+  // there is _some_ speaker
+  expect(response.body.speech.speaker.name).toBeDefined();
+
+  // expect some game information
+  expect(response.body.speech.text).toMatch(/simulate/i);
+  expect(response.body.speech.text).toMatch(/adventure/i);
+  expect(response.body.speech.text).toMatch(/endpoint/i);
+
+  // includes option to restart
+  expect(response.body.options).toMatchObject({ backToStart: "/" });
+});
+
+test("GET /quest/start/hard responds with veteran related speech and two hard town choices ", async () => {
+  const response = await supertest(app).get("/quest/start/hard");
+
+  expect(response.body.speech.speaker.name).toBeDefined();
+  expect(response.body.location).toBeDefined();
+  expect(response.body.options.town1).toMatch(/kourend/i);
+  expect(response.body.speech.text).toMatch(/veteran/i);
+});
+
+test("GET /quest/start/easy responds with newbie related speech and two easy town choices", async () => {
+  const response = await supertest(app).get("/quest/start/easy");
+
+  expect(response.body.speech.speaker.name).toBeDefined();
+  expect(response.body.location).toBeDefined();
+  expect(response.body.options.town2).toMatch(/varrock/i);
+  expect(response.body.speech.text).toMatch(/newbie/i);
+});
+
+test("GET /quest/start/varrock responds with speech from the gypsy lady and a choice of who to speak to from two palace officials", async () => {
+  const response = await supertest(app).get("/quest/start/varrock");
+  expect(response.body.speech.speaker.name).toBeDefined();
+  expect(response.body.location).toMatch(/varrock/i);
+  expect(response.body.options.varrockPalace).toMatch(/palace/i);
+  expect(response.body.options.edgeville).toMatch(/edge/i);
+});
+
+test("GET /quest/start/ardougne responds with speech from an ardy knight and a choice of who to speak to a wizard or pet shop owner", async () => {
+  const response = await supertest(app).get("/quest/start/ardougne");
+  expect(response.body.speech.speaker.name).toMatch(/knight/i);
+  expect(response.body.location).toMatch(/ardougne/i);
+  expect(response.body.options.probita).toMatch(/prob/i);
+  expect(response.body.options.wizard).toMatch(/wizard/i);
+});
+
+test("GET /quest/start/kourend responds with speech from the hosidius architect and a choice of who to speak from house arceuus or shazyien", async () => {
+  const response = await supertest(app).get("/quest/start/kourend");
+  expect(response.body.speech.speaker.name).toMatch(/hosa/i);
+  expect(response.body.location).toMatch(/castle/i);
+  expect(response.body.options.arcis).toMatch(/arcis/i);
+  expect(response.body.options.shayda).toMatch(/shayda/i);
 });
